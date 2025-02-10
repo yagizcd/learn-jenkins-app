@@ -41,4 +41,5 @@ pipeline {
             junit 'test-result/junit.xml'
         }
     }
+
     }
