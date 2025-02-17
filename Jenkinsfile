@@ -4,6 +4,7 @@ pipeline {
     environment {
         NETLIFY_SITE_ID = 'ac6bd5d7-ace7-46f9-a0a7-283476cd2c51'
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
+        CI_ENVIRONMENT_URL = 'https://guileless-kheer-b29d88.netlify.app/'
     }
 
     stages {
@@ -50,20 +51,20 @@ pipeline {
                         }
                     }
             }
-                stage('E2E') {
+            stage('E2E') {
                     agent {
                         docker {
                             image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
                             reuseNode true
                         }
                     }
-            steps  {
-                sh '''
-                    npm install serve
-                    node_modules/.bin/serve -s build &
-                    sleep 10 
-                    npx playwright test --reporter=html
-                '''
+                steps  {
+                    sh '''
+                        npm install serve
+                        node_modules/.bin/serve -s build &
+                        sleep 10 
+                        npx playwright test --reporter=html
+                    '''
                 }
                  post {
                     always {
@@ -94,6 +95,35 @@ pipeline {
                 '''
             }
         }
+        stage('Prod E2E') {
+                agent {
+                    docker {
+                        image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                        reuseNode true
+                    }
+                }
+
+                environment {
+                    NETLIFY_SITE_ID = 'ac6bd5d7-ace7-46f9-a0a7-283476cd2c51'
+                    NETLIFY_AUTH_TOKEN = credentials('netlify-token')
+                    CI_ENVIRONMENT_URL = 'https://guileless-kheer-b29d88.netlify.app'
+                }
+
+
+                steps  {
+                    sh '''
+                        npx playwright test --reporter=html
+                    '''
+                }
+                 post {
+                    always {
+                        publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                    }
+                }
+
+
+            }
+
         }
 
 
