@@ -104,6 +104,9 @@ pipeline {
                 }
             }
             steps {
+                timeout(1) {
+                    input message: 'If you press "Yes i want to deploy to production" button you will deploy to it', ok: 'Yes, i want to deploy to production'
+                }
                 sh '''
                     npm install netlify-cli
                     node_modules/.bin/netlify --version 
